@@ -8,7 +8,7 @@ extension Int {
     static let romanDigitMax = 3_999
     
     func romanNumber() -> String? {
-        if self < 1 || self > 6_000 {
+        if self < 1 || self > Int.romanDigitMax {
             return nil
         }
         var romeStr = ""
