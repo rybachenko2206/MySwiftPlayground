@@ -5,22 +5,9 @@ import Foundation
 
 extension Int {
     static let incorrectString = -1
+    static let romanDigitMax = 3_999
     
-    static let romanDigitsDictionary = [1 : "I",
-                                        4 : "IV",
-                                        5 : "V",
-                                        9 : "IX",
-                                        10 : "X",
-                                        40 : "XL",
-                                        50 : "L",
-                                        90 : "XC",
-                                        100 : "C",
-                                        400 : "CD",
-                                        500 : "D",
-                                        900 : "CM",
-                                        1000 : "M"]
-    
-    func toRoman() -> String? {
+    func romanNumber() -> String? {
         if self < 1 || self > 6_000 {
             return nil
         }
@@ -28,65 +15,58 @@ extension Int {
         let signs = self.signsArray()
         
         for i in 0..<signs.count {
-            let mutiplier: Int = Int(NSDecimalNumber(decimal: pow(10, i)))
-            let currSign = signs[i] * mutiplier
+            let currSign = signs[i]
             
-            romeStr = currSign.currentSignRomanString() + romeStr
-            
+            romeStr = currSign.currentSignRomanString(digitPlace: i) + romeStr
         }
-        print(romeStr)
         
         return romeStr
     }
     
-    func currentSignRomanString() -> String {
-        var allKeys = Array(Int.romanDigitsDictionary.keys)
-        allKeys = allKeys.sorted(by: {
-            $0 < $1
-        })
+    func currentSignRomanString(digitPlace: Int) -> String {
         var rString = ""
         
-        if self > RomanDigit.Thousand.toInt() {
-            let key = allKeys.last!
-            let currSign = Int.romanDigitsDictionary[key]
-            let count = self / RomanDigit.Thousand.toInt()
-            for i in 0..<count {
-                rString = rString + currSign!
+        let symbolsArray = RomanDigit.symbolsForDigitPlace(place: digitPlace)
+        if symbolsArray.count == 1 {
+            let maxDigitThousand = Int.romanDigitMax / 1_000
+            for i in 0..<maxDigitThousand {
+                rString.append(symbolsArray.last!.rawValue)
             }
-            return rString
-        }
-        
-        if allKeys.contains(self) {
-            return Int.romanDigitsDictionary[self]!
-        }
-        
-        let romanClassSigns = ["I", "X", "C", "M"]
-        
-        for i in 0..<allKeys.count - 1 {
-            let currKey = allKeys[i]
-            let nextKey = allKeys[i + 1]
-            if currKey < self && nextKey > self {
-                var sign = Int.romanDigitsDictionary[currKey]
-                var count = 1
-                if romanClassSigns.contains(sign!) {
-                    count = self / currKey
-                } else {
-                    rString.append(sign!)
-                    let prevKey = allKeys[i - 2]
-                    sign = Int.romanDigitsDictionary[prevKey]
-                    count = (self - currKey) / prevKey
-                }
-                for i in 0..<count {
-                    rString = rString + sign!
-                }
+        } else if symbolsArray.count > 1 {
+            switch self {
+            case 1:
+                rString.append(symbolsArray[0].rawValue)
+            case 2:
+                let sign = String(symbolsArray[0].rawValue)
+                rString = sign + sign
+            case 3:
+                let sign = String(symbolsArray[0].rawValue)
+                rString = sign + sign + sign
+            case 4:
+                rString = String(symbolsArray[0].rawValue) + String(symbolsArray[1].rawValue)
+            case 5:
+                rString = String(symbolsArray[1].rawValue)
+            case 6:
+                let firstSign = String(symbolsArray[1].rawValue)
+                let otherSign = String(symbolsArray[0].rawValue)
+                rString = firstSign + otherSign
+            case 7:
+                let firstSign = String(symbolsArray[1].rawValue)
+                let otherSign = String(symbolsArray[0].rawValue)
+                rString = firstSign + otherSign + otherSign
+            case 8:
+                let firstSign = String(symbolsArray[1].rawValue)
+                let otherSign = String(symbolsArray[0].rawValue)
+                rString = firstSign + otherSign + otherSign + otherSign
+            case 9:
+                rString =  String(symbolsArray[0].rawValue) +  String(symbolsArray[2].rawValue)
+            default: break
                 
-                return rString
             }
         }
         
         return rString
     }
-    
     
     
     static func arabianNumber(romeDigitStr: String) -> Int? {
@@ -169,12 +149,24 @@ enum RomanDigit: Character {
         }
         return true
     }
+    
+    static func symbolsForDigitPlace(place: Int) -> [RomanDigit] {
+        if place == 0 {
+            return [.One, .Five, .Ten]
+        } else if place == 1 {
+            return [.Ten, .Fifty, .Hundred]
+        } else if place == 2 {
+            return [.Hundred, .FiveHundreds, .Thousand]
+        } else {
+            return [.Thousand]
+        }
+    }
 }
 
 
 
 let intDigit: Int = 641
-let romeStr = intDigit.toRoman()
+let romeStr = intDigit.romanNumber()
 print("\(intDigit) = \(romeStr) in Roman numerals")
 
 
